@@ -5,6 +5,6 @@ import PackageDescription
 let package = Package(
     name: "AWS",
     dependencies: [
-        .Package(url: "https://github.com/Zewo/Zewo.git", majorVersion: 0, minor: 10),
+        .Package(url: "https://github.com/Zewo/Zewo.git", majorVersion: 0, minor: 11),
     ]
 )

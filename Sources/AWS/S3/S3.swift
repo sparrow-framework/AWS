@@ -1,5 +1,6 @@
 import HTTP
 import Core
+import Content
 
 public struct ListBucketsResult : XMLInitializable {
     let owner: Owner
