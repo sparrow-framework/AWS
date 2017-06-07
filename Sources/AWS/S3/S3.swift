@@ -4,11 +4,19 @@ import Content
 
 public struct ListBucketsResult : XMLInitializable {
     let owner: Owner
-    let buckets: [Bucket]
+    let buckets: Buckets
     
     public init(xml: XML) throws {
         owner = try xml.get("Owner")
-        buckets = try xml.get("Buckets", "Bucket")
+        buckets = try xml.get("Buckets")
+    }
+}
+
+public struct Buckets : XMLInitializable {
+    let buckets: [Bucket]
+    
+    public init(xml: XML) throws {
+        buckets = try xml.get("Bucket")
     }
 }
 
@@ -47,8 +55,9 @@ public final class S3 {
     public func listBuckets() throws -> ListBucketsResult {
         let request = try Request(
             method: .get,
-            uri: "/",
+            uri: "https://s3.amazonaws.com/",
             headers: [
+                "Host": "s3.amazonaws.com",
                 "Accept": "application/json",
                 "x-amz-content-sha256": client.getHashedRequestPayload()
             ]
@@ -56,7 +65,6 @@ public final class S3 {
         
         let response = try client.send(request, region: .usEast1)
         let xml: XML = try response.content()
-        print(xml)
         return try ListBucketsResult(xml: xml)
     }
 }

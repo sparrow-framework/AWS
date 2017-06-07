@@ -6,7 +6,7 @@ import Crypto
 @testable import HTTP
 
 final class AWSClient {
-    let client: Client
+//    let client: Client
     
     let accessKeyID: String
     let secretAcessKey: String
@@ -31,7 +31,7 @@ final class AWSClient {
         self.accessKeyID = accessKeyID
         self.secretAcessKey = secretAcessKey
         self.service = service
-        client = try Client(uri: "https://" + service.value + ".amazonaws.com/")
+//        client = try Client(uri: "https://" + service.value + ".us-east-1.amazonaws.com/")
     }
     
     deinit {
@@ -54,7 +54,7 @@ final class AWSClient {
         for (index, item) in items.enumerated() {
             string += item.name
             string += "="
-            string += item.value?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            string += item.value?.addingPercentEncoding(withAllowedCharacters: .urlAllowed) ?? ""
             
             if index < items.count - 1 {
                 string += "&"
@@ -67,7 +67,7 @@ final class AWSClient {
     func getCanonicalHeaders(request: Request) -> String {
         var string = ""
         
-        let headers = request.headers.map({ ($0.0.string.lowercased(), $0.1) }).sorted {
+        let headers = request.headers.map({ ($0.0.original.lowercased(), $0.1) }).sorted {
             $0.0 < $1.0
         }
         
@@ -81,8 +81,8 @@ final class AWSClient {
         return string
     }
     
-    func getSignedHeaders(headers: [HeaderField]) -> String {
-        let headers = headers.map({ $0.string.lowercased() }).sorted {
+    func getSignedHeaders(headers: [Headers.Field]) -> String {
+        let headers = headers.map({ $0.original.lowercased() }).sorted {
             $0 < $1
         }
         
@@ -94,7 +94,7 @@ final class AWSClient {
         return hashedRequestPayload.hexString
     }
     
-    func getCanonicalRequest(request: Request, signedHeaders: [HeaderField]) -> String {
+    func getCanonicalRequest(request: Request, signedHeaders: [Headers.Field]) -> String {
         var string = request.method.description
         string += "\n"
         string += getCanonicalURI(request: request)
@@ -109,7 +109,7 @@ final class AWSClient {
         return string
     }
     
-    func getHashedCanonicalRequest(request: Request, signedHeaders: [HeaderField]) -> String {
+    func getHashedCanonicalRequest(request: Request, signedHeaders: [Headers.Field]) -> String {
         let canonicalRequest = getCanonicalRequest(request: request, signedHeaders: signedHeaders)
         let hashedCanonicalRequest = Crypto.sha256(canonicalRequest, buffer: buffer)
         return hashedCanonicalRequest.hexString
@@ -130,7 +130,7 @@ final class AWSClient {
         date: String,
         region: Region,
         request: Request,
-        signedHeaders: [HeaderField]
+        signedHeaders: [Headers.Field]
     ) -> String {
         var string = "AWS4-HMAC-SHA256\n"
         string += dateTime
@@ -145,15 +145,15 @@ final class AWSClient {
         date: String,
         region: Region
     ) -> UnsafeRawBufferPointer {
-        let dateKey = Crypto.hmacSHA256(date, key: "AWS4" + secretAcessKey, buffer: buffer)
-        let regionKey = Crypto.hmacSHA256(region.value, key: dateKey, buffer: buffer)
-        let serviceKey = Crypto.hmacSHA256(service.value, key: regionKey, buffer: buffer)
-        return Crypto.hmacSHA256("aws4_request", key: serviceKey, buffer: buffer)
+        let dateKey = Crypto.hs256(date, key: "AWS4" + secretAcessKey, buffer: buffer)
+        let regionKey = Crypto.hs256(region.value, key: dateKey, buffer: buffer)
+        let serviceKey = Crypto.hs256(service.value, key: regionKey, buffer: buffer)
+        return Crypto.hs256("aws4_request", key: serviceKey, buffer: buffer)
     }
     
     func sign(date: String, region: Region, stringToSign: String) -> String {
         let signatureKey = getSignatureKey(date: date, region: region)
-        let signature = Crypto.hmacSHA256(stringToSign, key: signatureKey, buffer: buffer)
+        let signature = Crypto.hs256(stringToSign, key: signatureKey, buffer: buffer)
         return signature.hexString
     }
     
@@ -162,7 +162,7 @@ final class AWSClient {
         date: String,
         region: Region,
         request: Request,
-        signedHeaders: [HeaderField]
+        signedHeaders: [Headers.Field]
     ) -> String {
         let stringToSign = getStringToSign(
             dateTime: dateTime,
@@ -180,7 +180,7 @@ final class AWSClient {
         date: String,
         region: Region,
         request: Request,
-        signedHeaders: [HeaderField]
+        signedHeaders: [Headers.Field]
     ) -> String {
         var string = ""
         
@@ -205,7 +205,6 @@ final class AWSClient {
         let dateTime = dateTimeFormatter.string(from: today)
         let date = String(dateTime.characters.prefix(8))
         
-        request.host = service.value + ".amazonaws.com"
         request.headers["X-Amz-Date"] = dateTime
         
         let auth = getAuthorizationHeader(
@@ -219,8 +218,9 @@ final class AWSClient {
         request.authorization = auth
     }
     
+    /// Adds the X-Amz-Date and Authorization headers and sends the request to AWS service.
     func send(_ request: Request, region: Region) throws -> Response {
         authorize(request, region: region)
-        return try client.send(request)
+        return try Client.send(request)
     }
 }
