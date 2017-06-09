@@ -1,13 +1,11 @@
 import Venice
 import Core
-import COpenSSL
+import CLibtls
 import Foundation
 import Crypto
 @testable import HTTP
 
 final class AWSClient {
-//    let client: Client
-    
     let accessKeyID: String
     let secretAcessKey: String
     let service: Service
@@ -31,7 +29,6 @@ final class AWSClient {
         self.accessKeyID = accessKeyID
         self.secretAcessKey = secretAcessKey
         self.service = service
-//        client = try Client(uri: "https://" + service.value + ".us-east-1.amazonaws.com/")
     }
     
     deinit {
