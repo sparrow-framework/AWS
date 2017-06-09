@@ -3,7 +3,7 @@ import Core
 import CLibtls
 import Foundation
 import Crypto
-@testable import HTTP
+import HTTP
 
 final class AWSClient {
     let accessKeyID: String

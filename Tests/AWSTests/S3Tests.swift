@@ -1,12 +1,13 @@
 import XCTest
 import AWS
 import Foundation
+import Core
 
 public class AWSTests: XCTestCase {
     func testListBuckets() throws {
         let s3 = try S3(
-            accessKeyID: "insert your access key id",
-            secretAcessKey: "insert your secret access key here"
+            accessKeyID: try Environment.variable("AWS_ACCESS_KEY_ID"),
+            secretAcessKey: try Environment.variable("AWS_SECRET_ACCESS_KEY")
         )
         
         s3.defaultRegion = .saEast1
