@@ -10,6 +10,6 @@ dependencies:
 
 test:
   override:
-    - ~/.swiftenv/shims/swift build
-    - ~/.swiftenv/shims/swift build --configuration release
-    - env LD_LIBRARY_PATH='/usr/local/lib:/usr/local/opt/libressl/lib' ~/.swiftenv/shims/swift test
+    - /home/ubuntu/.swiftenv/shims/swift build
+    - /home/ubuntu/.swiftenv/shims/swift build --configuration release
+    - env LD_LIBRARY_PATH='/usr/local/lib:/usr/local/opt/libressl/lib' /home/ubuntu/.swiftenv/shims/swift test
