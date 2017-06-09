@@ -13,6 +13,6 @@ test:
     - export SWIFTENV_ROOT="$HOME/.swiftenv"
     - export PATH="$SWIFTENV_ROOT/bin:$SWIFTENV_ROOT/shims:$PATH"
 
-    - swift build
-    - swift build --configuration release
-    - env LD_LIBRARY_PATH='/usr/local/lib:/usr/local/opt/libressl/lib' swift test
+    -  ~/.swiftenv/shims/swift build
+    - ~/.swiftenv/shims/swift build --configuration release
+    - env LD_LIBRARY_PATH='/usr/local/lib:/usr/local/opt/libressl/lib' ~/.swiftenv/shims/swift test
