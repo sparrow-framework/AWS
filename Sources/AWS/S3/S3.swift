@@ -65,6 +65,7 @@ public final class S3 {
         
         let response = try client.send(request, region: .usEast1)
         let xml: XML = try response.content()
+        // TODO: Make XMLInitializable adopt ContentInitializable
         return try ListBucketsResult(xml: xml)
     }
 }
