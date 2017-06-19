@@ -1,10 +1,24 @@
-// swift-tools-version:3.1
+// swift-tools-version:4.0
 
 import PackageDescription
 
 let package = Package(
     name: "AWS",
+    products: [
+        .library(
+            name: "AWS",
+            targets: [
+               "AWS"
+            ]
+        )
+    ],
     dependencies: [
-        .Package(url: "https://github.com/Zewo/Zewo.git", majorVersion: 0, minor: 15),
+        .package(url: "https://github.com/Zewo/Zewo.git", .branch("swift-4"))
+    ],
+    targets: [
+        .target(name: "AWS", dependencies: ["Zewo"]),
+        .testTarget(name: "AWSTests", dependencies: ["AWS"]),
     ]
 )
+
+
