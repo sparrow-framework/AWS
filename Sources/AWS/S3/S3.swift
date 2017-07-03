@@ -1,42 +1,65 @@
 import HTTP
 import Core
-import Content
+import Media
 
-public struct ListBucketsResult : XMLInitializable {
-    let owner: Owner
-    let buckets: Buckets
-    
-    public init(xml: XML) throws {
-        owner = try xml.get("Owner")
-        buckets = try xml.get("Buckets")
-    }
-}
-
-public struct Buckets : XMLInitializable {
-    let buckets: [Bucket]
-    
-    public init(xml: XML) throws {
-        buckets = try xml.get("Bucket")
-    }
-}
-
-public struct Bucket : XMLInitializable {
+public struct Bucket : MediaDecodable {
     let name: String
     let creationDate: String
     
-    public init(xml: XML) throws {
-        name = try xml.get("Name")
-        creationDate = try xml.get("CreationDate")
+    enum Key : String, CodingKey {
+        case name = "Name"
+        case creationDate = "CreationDate"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        name = try container.decode(String.self, forKey: .name)
+        creationDate = try container.decode(String.self, forKey: .creationDate)
     }
 }
 
-public struct Owner : XMLInitializable {
+public struct Buckets : MediaDecodable {
+    let buckets: [Bucket]
+    
+    enum Key : String, CodingKey {
+        case buckets = "Bucket"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        buckets = try container.decode([Bucket].self, forKey: .buckets)
+    }
+}
+
+public struct Owner : MediaDecodable {
     let id: String
     let displayName: String
     
-    public init(xml: XML) throws {
-        id = try xml.get("ID")
-        displayName = try xml.get("DisplayName")
+    enum Key : String, CodingKey {
+        case id = "ID"
+        case displayName = "DisplayName"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        id = try container.decode(String.self, forKey: .id)
+        displayName = try container.decode(String.self, forKey: .displayName)
+    }
+}
+
+public struct ListBucketsResult : MediaDecodable {
+    let owner: Owner
+    let buckets: Buckets
+    
+    enum Key : String, CodingKey {
+        case owner = "Owner"
+        case buckets = "Buckets"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        owner = try container.decode(Owner.self, forKey: .owner)
+        buckets = try container.decode(Buckets.self, forKey: .buckets)
     }
 }
 
@@ -64,8 +87,7 @@ public final class S3 {
         )
         
         let response = try client.send(request, region: .usEast1)
-        let xml: XML = try response.content()
-        // TODO: Make XMLInitializable adopt ContentInitializable
-        return try ListBucketsResult(xml: xml)
+        let listBuckets: XMLResult<ListBucketsResult> = try response.content(userInfo: [.resultKey: "ListAllMyBucketsResult"])
+        return listBuckets.result
     }
 }

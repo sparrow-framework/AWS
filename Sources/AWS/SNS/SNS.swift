@@ -1,31 +1,61 @@
 import HTTP
 import Core
-import Content
+import Media
 import Foundation
 
-public struct PublishResult : JSONInitializable {
+public struct PublishResult : MediaDecodable {
     let messageID: UUID
     
-    public init(json: JSON) throws {
-        messageID = try json.get("MessageId")
+    enum Key : String, CodingKey {
+        case messageID = "MessageId"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        messageID = try container.decode(UUID.self, forKey: .messageID)
     }
 }
 
-public struct ResponseMetadata : JSONInitializable {
+public struct ResponseMetadata : MediaDecodable {
     let requestID: UUID
     
-    public init(json: JSON) throws {
-        requestID = try json.get("RequestId")
+    enum Key : String, CodingKey {
+        case requestID = "RequestId"
     }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        requestID = try container.decode(UUID.self, forKey: .requestID)
+    }
+    
 }
 
-public struct PublishResponse : JSONInitializable {
+public struct PublishResponse : MediaDecodable {
     let publishResult: PublishResult
     let responseMetadata: ResponseMetadata
     
-    public init(json: JSON) throws {
-        publishResult = try json.get("PublishResponse", "PublishResult")
-        responseMetadata = try json.get("PublishResponse", "ResponseMetadata")
+    enum Key : String, CodingKey {
+        case publishResult = "PublishResult"
+        case responseMetadata = "ResponseMetadata"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        publishResult = try container.decode(PublishResult.self, forKey: .publishResult)
+        responseMetadata = try container.decode(ResponseMetadata.self, forKey: .responseMetadata)
+    }
+}
+
+public struct SendSMSResponse : MediaDecodable {
+    let publishResponse: PublishResponse
+    
+    enum Key : String, CodingKey {
+        case publishResponse = "PublishResponse"
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: Key.self)
+        publishResponse = try container.decode(PublishResponse.self, forKey: .publishResponse)
     }
 }
 
@@ -46,7 +76,7 @@ public final class SNS {
         phoneNumber: String,
         message: String,
         region: Region = .usEast1
-    ) throws -> PublishResponse {
+    ) throws -> SendSMSResponse {
         let phoneNumber = phoneNumber.addingPercentEncoding(withAllowedCharacters: .urlAllowed) ?? ""
         let message = message.addingPercentEncoding(withAllowedCharacters: .urlAllowed) ?? ""
         
@@ -61,7 +91,6 @@ public final class SNS {
         )
         
         let response = try client.send(request, region: region)
-        let json: JSON = try response.content()
-        return try PublishResponse(json: json)
+        return try response.content()
     }
 }
