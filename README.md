@@ -7,7 +7,7 @@
 
 # AWS
 
-Sparrow is a lightweight framework for building modern RESTful APIs.
+AWS is a Venice based client for using Amazon Web Services.
 
 ----
 
